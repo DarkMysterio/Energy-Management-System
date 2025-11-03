@@ -13,7 +13,6 @@ public class DataInitializer {
     @Bean
     CommandLineRunner initDatabase(AuthRepository authRepository, PasswordEncoder passwordEncoder) {
         return args -> {
-            // Check if admin user already exists
             if (authRepository.findByEmail("admin@yahoo.com").isEmpty()) {
                 AuthDetails admin = new AuthDetails();
                 admin.setEmail("admin@yahoo.com");

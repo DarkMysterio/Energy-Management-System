@@ -28,7 +28,10 @@ public class SecurityConfig {
 
         //disable csrf
         return http.csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(req -> req // no access without auth ,only for
+                .authorizeHttpRequests(req -> req
+                        .requestMatchers(
+                                "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**"
+                        ).permitAll()// no access without auth ,only for
                         .requestMatchers("/auth/register", "/auth/login", "/auth/validate").permitAll().anyRequest().authenticated())
                 .httpBasic(Customizer.withDefaults())
                 .sessionManagement(session ->
