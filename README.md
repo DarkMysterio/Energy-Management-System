@@ -301,6 +301,11 @@ Frontend will be available at: `http://localhost:3000`
 - **User Service** (internal): http://localhost:8080
 - **Device Service** (internal): http://localhost:8081
 
+### API Documentation
+- **Auth Service Swagger**: http://localhost:8082/swagger-ui/index.html
+- **User Service Swagger**: http://localhost:8080/swagger-ui/index.html
+- **Device Service Swagger**: http://localhost:8081/swagger-ui/index.html
+
 ### Database Ports (for direct access)
 - Auth DB: `localhost:5435`
 - Users DB: `localhost:5433`
@@ -391,6 +396,10 @@ Device Service (/devices/*)
 - ✅ Path rewriting
 - ✅ Authentication forwarding
 - ✅ Access logging
+
+### Documentation
+- ✅ Swagger/OpenAPI 3.0 for all services
+- ✅ Interactive API testing interface
 
 ### Frontend
 - ✅ React single-page application
@@ -510,6 +519,7 @@ Import the collection file:
 - **Container Orchestration**: Docker Compose
 - **Database**: PostgreSQL (3 instances)
 - **Networking**: Docker networks
+- **API Documentation**: Swagger/OpenAPI 3.0
 
 ---
 
@@ -558,7 +568,6 @@ lab/
 - [ ] Kubernetes deployment
 - [ ] CI/CD pipeline
 - [ ] Unit and integration tests
-- [ ] API documentation (Swagger/OpenAPI)
 - [ ] Metrics and monitoring (Prometheus/Grafana)
 
 ---
@@ -598,22 +607,5 @@ lab/
 
 ---
 
-## Contributors
-
 Developed for the Distributed Systems (SD) course laboratory assignments.
 
----
-
-## License
-
-This is an academic project for educational purposes.
-
----
-
-## Contact
-
-For questions or issues, please refer to the course materials or contact the instructor.
-
----
-
-**Last Updated:** November 3, 2025
