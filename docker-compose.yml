@@ -1,0 +1,132 @@
+version: "3.9"
+
+services:
+  reverse-proxy:
+    image: traefik:v3.2
+    container_name: reverse-proxy
+    ports:
+      - "80:80"        
+      - "8080:8080" 
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./dynamic:/etc/traefik/dynamic:ro
+      - ./logs:/var/log/traefik
+    networks:
+      demo_net:
+
+  db-users:
+    image: postgres
+    container_name: db-users
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1163
+      POSTGRES_DB: example-db
+    ports:
+      - "5433:5432"
+    volumes:
+      - users-db:/var/lib/postgresql/data
+    networks:
+      demo_net:
+
+  db-devices:
+    image: postgres
+    container_name: db-devices
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1163
+      POSTGRES_DB: devices
+    ports:
+      - "5434:5432"
+    volumes:
+      - devices-db:/var/lib/postgresql/data
+    networks:
+      demo_net:
+
+
+  db-auth:
+    image: postgres
+    container_name: db-auth
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1163
+      POSTGRES_DB: authdb
+    ports:
+      - "5435:5432"
+    volumes:
+      - auth-db:/var/lib/postgresql/data
+    networks:
+      demo_net:
+
+  
+  auth-service:
+    build: ./auth-service/auth-service
+    image: auth-service
+    container_name: auth-service
+    # ports:
+    #   - "8082:8082"
+    environment:
+      - DB_IP=db-auth
+      - DB_PORT=5432
+      - DB_DBNAME=authdb
+      - DB_USER=postgres
+      - DB_PASSWORD=1163
+      - USER_SERVICE_URL=http://spring-demo:8080
+      - SERVER_PORT=8082
+      - PORT=8082
+    networks:
+      demo_net:
+    depends_on:
+      - db-auth
+      - spring-demo
+  
+  spring-demo:
+    build: ./ds2025_spring_example/demo
+    image: backend-image
+    container_name: spring-demo
+    # ports:
+    #   - "8080:8080"
+    environment:
+      - DB_IP=db-users
+      - DB_PORT=5432
+      - DB_DBNAME=example-db
+      - DB_USER=postgres
+      - DB_PASSWORD=1163
+      - DEVICE_SERVICE_URL=http://device-service:8081
+      - SERVER_PORT=8080
+      - PORT=8080
+    networks:
+      demo_net:
+    depends_on:
+      - db-users
+
+  device-service:
+    build: ./device-service
+    image: device-service
+    container_name: device-service
+    # ports:
+    #   - "8081:8081"
+    environment:
+      - DB_IP=db-devices
+      - DB_PORT=5432
+      - DB_DBNAME=devices
+      - DB_USER=postgres
+      - DB_PASSWORD=1163
+      - USER_SERVICE_URL=http://spring-demo:8080
+      - SERVER_PORT=8081
+      - PORT=8081
+    networks:
+      demo_net:
+    depends_on:
+      - db-devices
+
+volumes:
+  users-db:
+  devices-db:
+  auth-db:
+
+networks:
+  demo_net:

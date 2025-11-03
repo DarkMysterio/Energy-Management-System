@@ -1,0 +1,77 @@
+# dynamic/path.yml
+http:
+  routers:
+    r-auth:
+      entryPoints: [web]
+      rule: PathPrefix(`/auth`)
+      service: s-auth
+      middlewares: [cors]
+
+    r-users:
+      entryPoints: [web]
+      rule: PathPrefix(`/api/users`)
+      service: s-users
+      middlewares: [cors, mw-auth-forward, mw-users-replace]
+
+    r-devices:
+      entryPoints: [web]
+      rule: PathPrefix(`/api/devices`)
+      service: s-devices
+      middlewares: [cors, mw-auth-forward, mw-devices-replace]
+
+    # Handle CORS preflights cleanly (no auth, no backend)
+    r-preflight:
+      entryPoints: [web]
+      rule: "Method(`OPTIONS`) && PathPrefix(`/api`)"
+      service: noop@internal
+      middlewares: [cors]
+
+  middlewares:
+    cors:
+      headers:
+        accessControlAllowOriginList:
+          - "http://localhost:3000"
+        accessControlAllowMethods:
+          - "GET" # add what you use
+          - "POST"
+          - "PUT"
+          - "PATCH"
+          - "DELETE"
+          - "OPTIONS"
+        accessControlAllowHeaders:
+          - "Authorization"
+          - "Content-Type"
+        accessControlAllowCredentials: true
+        addVaryHeader: true
+
+    mw-auth-forward:
+      forwardAuth:
+        address: "http://auth-service:8082/auth/validate"
+        authRequestHeaders:
+          - "Authorization"  
+
+    # /api/users[...]  -> /people[...]
+    mw-users-replace:
+      replacePathRegex:
+        regex: ^/api/users(.*)
+        replacement: /people$1
+
+    # /api/devices[...] -> /devices[...]
+    mw-devices-replace:
+      replacePathRegex:
+        regex: ^/api/devices(.*)
+        replacement: /devices$1   
+
+  services:
+    s-auth:
+      loadBalancer:
+        servers:
+          - url: "http://auth-service:8082"
+    s-users:
+      loadBalancer:
+        servers:
+          - url: "http://spring-demo:8080"
+    s-devices:
+      loadBalancer:
+        servers:
+          - url: "http://device-service:8081"
