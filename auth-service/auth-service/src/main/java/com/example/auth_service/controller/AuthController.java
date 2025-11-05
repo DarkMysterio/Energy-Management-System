@@ -82,5 +82,4 @@ public class AuthController {
                 .header("Access-Control-Allow-Credentials", "true")
                 .build();
     }
-
 }

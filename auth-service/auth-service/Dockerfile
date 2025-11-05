@@ -11,7 +11,7 @@ COPY ./src/ /demo/src
 WORKDIR /demo
 RUN mvn clean install -DskipTests
 
-FROM openjdk:25-jdk
+FROM eclipse-temurin:21-jdk
 WORKDIR /auth-service
 COPY --from=build /demo/target/auth-service-0.0.1-SNAPSHOT.jar /auth-service/demo.jar
 EXPOSE 8082

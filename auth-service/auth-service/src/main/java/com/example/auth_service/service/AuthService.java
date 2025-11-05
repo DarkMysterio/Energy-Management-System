@@ -46,18 +46,18 @@ public class AuthService {
         AuthDetails user = new AuthDetails();
         user.setEmail(req.getEmail());
         user.setPassword(passwordEncoder.encode(req.getPassword()));
-        user.setRole(req.getRole().toUpperCase()); // ADMIN / CLIENT
+        user.setRole(req.getRole().toUpperCase());
 
         authRepository.save(user);
 
-        // Create user in user-service
+        //Create user in user-service
         try {
             UserServiceDTO userDto = new UserServiceDTO(
                 req.getName(),
                 req.getAge(),
                 req.getAddress(),
                 req.getEmail(),
-                req.getPassword()
+                user.getPassword() // sent hashed pasword
             );
             
             HttpHeaders headers = new HttpHeaders();
@@ -66,7 +66,6 @@ public class AuthService {
             
             restTemplate.postForEntity(userServiceUrl + "/people", request, Void.class);
         } catch (Exception e) {
-            // Log the error but don't fail registration
             System.err.println("Failed to create user in user-service: " + e.getMessage());
         }
 
