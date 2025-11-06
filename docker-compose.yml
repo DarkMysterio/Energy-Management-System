@@ -124,6 +124,15 @@ services:
     depends_on:
       - db-devices
 
+  frontend:
+    build: ./frontend
+    image: frontend-react
+    container_name: frontend
+    ports:
+      - "3000:80"
+    networks:
+      demo_net:
+
 volumes:
   users-db:
   devices-db:
