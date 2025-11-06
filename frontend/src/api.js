@@ -139,6 +139,14 @@ export const deleteAllDevices = async () => {
   return handleResponse(response);
 };
 
+export const deleteDevice = async (id) => {
+  const response = await fetch(`${API_URL}/api/devices/${id}`, {
+    method: 'DELETE',
+    headers: getHeaders()
+  });
+  return handleResponse(response);
+};
+
 // Assignments API
 export const fetchAssignments = async () => {
   const response = await fetch(`${API_URL}/api/devices/assign`, {
@@ -158,6 +166,14 @@ export const assignDeviceToUser = async (userId, deviceId) => {
 
 export const deleteAllAssignments = async () => {
   const response = await fetch(`${API_URL}/api/devices/assign`, {
+    method: 'DELETE',
+    headers: getHeaders()
+  });
+  return handleResponse(response);
+};
+
+export const deleteAssignment = async (userId, deviceId) => {
+  const response = await fetch(`${API_URL}/api/devices/assign/assignment/${userId}/${deviceId}`, {
     method: 'DELETE',
     headers: getHeaders()
   });

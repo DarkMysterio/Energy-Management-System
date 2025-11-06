@@ -2,18 +2,16 @@ package com.example.device_service.service;
 
 import com.example.device_service.converter.UserAndDeviceConverter;
 import com.example.device_service.dto.UserAndDeviceDTO;
-import com.example.device_service.dto.UserCacheDTO;
 import com.example.device_service.entity.UserAndDevice;
 import com.example.device_service.repository.UserAndDeviceRepository;
 import com.example.device_service.repository.UserCacheRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class UserAndDeviceService{
@@ -56,5 +54,20 @@ public class UserAndDeviceService{
         userAndDeviceRepository.deleteAll();
     }
 
+    @Transactional
+    public void deleteAllAssignedDevicesBelongingtoUser(UUID userId) {
+        List<UserAndDevice> assignments = userAndDeviceRepository.findByUserID(userId);
+        userAndDeviceRepository.deleteAll(assignments);
+    }
 
+    @Transactional
+    public void deleteAllAssignedDevicesBelongingtoDevice(UUID deviceId) {
+        List<UserAndDevice> assignments = userAndDeviceRepository.findByDeviceID(deviceId);
+        userAndDeviceRepository.deleteAll(assignments);
+    }
+
+    @Transactional
+    public void deleteAssignment(UUID userId, UUID deviceId) {
+        userAndDeviceRepository.deleteByUserIDAndDeviceID(userId, deviceId);
+    }
 }

@@ -96,6 +96,7 @@ services:
       - DB_USER=postgres
       - DB_PASSWORD=1163
       - DEVICE_SERVICE_URL=http://device-service:8081
+      - AUTH_SERVICE_URL=http://auth-service:8082
       - SERVER_PORT=8080
       - PORT=8080
     networks:

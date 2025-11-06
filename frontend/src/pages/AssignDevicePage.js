@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { fetchUsers, fetchDevices, assignDeviceToUser, fetchAssignments, deleteAllAssignments } from '../api';
+import { fetchUsers, fetchDevices, assignDeviceToUser, fetchAssignments, deleteAllAssignments, deleteAssignment } from '../api';
 
 function AssignDevicePage() {
     const [users, setUsers] = useState([]);
@@ -47,6 +47,19 @@ function AssignDevicePage() {
             try {
                 await deleteAllAssignments();
                 setMessage('All assignments deleted!');
+                setTimeout(() => setMessage(''), 3000);
+                loadData();
+            } catch (err) {
+                setError(err.message);
+            }
+        }
+    };
+
+    const handleDeleteOne = async (userId, deviceId) => {
+        if (window.confirm('Delete this assignment?')) {
+            try {
+                await deleteAssignment(userId, deviceId);
+                setMessage('Assignment deleted successfully!');
                 setTimeout(() => setMessage(''), 3000);
                 loadData();
             } catch (err) {
@@ -129,11 +142,12 @@ function AssignDevicePage() {
                             <th>User Name</th>
                             <th>Device ID</th>
                             <th>Device Name</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {assignments.length === 0 ? (
-                            <tr><td colSpan="4" style={{ textAlign: 'center' }}>No assignments found</td></tr>
+                            <tr><td colSpan="5" style={{ textAlign: 'center' }}>No assignments found</td></tr>
                         ) : (
                             assignments.map((assignment, index) => (
                                 <tr key={index}>
@@ -141,6 +155,14 @@ function AssignDevicePage() {
                                     <td>{getUserName(assignment.userID)}</td>
                                     <td>{assignment.deviceID}</td>
                                     <td>{getDeviceName(assignment.deviceID)}</td>
+                                    <td>
+                                        <button 
+                                            onClick={() => handleDeleteOne(assignment.userID, assignment.deviceID)}
+                                            style={{ padding: '5px 10px', background: '#dc3545', color: 'white', border: 'none', cursor: 'pointer' }}
+                                        >
+                                            Delete
+                                        </button>
+                                    </td>
                                 </tr>
                             ))
                         )}

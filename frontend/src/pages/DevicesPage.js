@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { fetchDevices, createDevice, updateDevice, updateDeviceName, updateDeviceConsumption, deleteAllDevices } from '../api';
+import { fetchDevices, createDevice, updateDevice, updateDeviceName, updateDeviceConsumption, deleteDevice, deleteAllDevices } from '../api';
 
 function DevicesPage() {
     const [devices, setDevices] = useState([]);
@@ -68,6 +68,17 @@ function DevicesPage() {
         if (window.confirm('Delete ALL devices?')) {
             try {
                 await deleteAllDevices();
+                loadDevices();
+            } catch (err) {
+                setError(err.message);
+            }
+        }
+    };
+
+    const handleDelete = async (id) => {
+        if (window.confirm('Delete this device? This will also remove all user assignments for this device.')) {
+            try {
+                await deleteDevice(id);
                 loadDevices();
             } catch (err) {
                 setError(err.message);
@@ -184,8 +195,11 @@ function DevicesPage() {
                                     )}
                                 </td>
                                 <td>
-                                    <button onClick={() => handleEdit(device)} style={{ padding: '5px 10px', cursor: 'pointer' }}>
+                                    <button onClick={() => handleEdit(device)} style={{ padding: '5px 10px', cursor: 'pointer', marginRight: '5px' }}>
                                         Full Edit
+                                    </button>
+                                    <button onClick={() => handleDelete(device.id)} style={{ background: '#dc3545', color: 'white', border: 'none', padding: '5px 10px', cursor: 'pointer' }}>
+                                        Delete
                                     </button>
                                 </td>
                             </tr>

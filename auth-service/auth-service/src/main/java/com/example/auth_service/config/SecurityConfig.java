@@ -33,7 +33,7 @@ public class SecurityConfig {
                                 "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**"
                         ).permitAll()// no access without auth ,only for
                         .requestMatchers("/auth/register", "/auth/login", "/auth/validate").permitAll().anyRequest().authenticated())
-                .httpBasic(Customizer.withDefaults())
+                .httpBasic(Customizer.withDefaults()) 
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)

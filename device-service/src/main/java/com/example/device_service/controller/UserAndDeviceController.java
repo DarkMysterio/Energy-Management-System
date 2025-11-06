@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:3000")
@@ -27,6 +28,29 @@ public class UserAndDeviceController {
     public ResponseEntity<List<UserAndDeviceDTO>> getAllAssignedDevices(){
         return ResponseEntity.ok(userAndDeviceService.getAllAssignedDevices());
     }
+
+    @DeleteMapping("/user/{id}")
+    public ResponseEntity<Void> deleteAllAssignedDevicesBelongingtoUser(@PathVariable UUID id){
+        userAndDeviceService.deleteAllAssignedDevicesBelongingtoUser(id);
+        ResponseEntity<Void> responseEntity = new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return responseEntity;
+    }
+
+    @DeleteMapping("/device/{id}")
+    public ResponseEntity<Void> deleteAllAssignedDevicesBelongingtoDevice(@PathVariable UUID id){
+        userAndDeviceService.deleteAllAssignedDevicesBelongingtoDevice(id);
+        ResponseEntity<Void> responseEntity = new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return responseEntity;
+    }
+
+    @DeleteMapping("/assignment/{userId}/{deviceId}")
+    public ResponseEntity<Void> deleteAssignment(
+            @PathVariable UUID userId,
+            @PathVariable UUID deviceId) {
+        userAndDeviceService.deleteAssignment(userId, deviceId);
+        return ResponseEntity.noContent().build();
+    }
+
 
     @DeleteMapping
     public ResponseEntity<Void> deleteAllAssignedDevices(){

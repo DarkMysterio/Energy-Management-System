@@ -190,11 +190,7 @@ This project implements a distributed system for managing users, devices, and au
 ### 5. Frontend (React - Port 3000)
 **Location:** `frontend/`
 
-**Technologies:**
-- React 18
-- React Router DOM
-- Axios (for API calls)
-- CSS
+
 
 **Key Features:**
 - JWT-based authentication

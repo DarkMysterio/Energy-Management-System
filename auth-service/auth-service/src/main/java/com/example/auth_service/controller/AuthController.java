@@ -82,4 +82,15 @@ public class AuthController {
                 .header("Access-Control-Allow-Credentials", "true")
                 .build();
     }
+    
+    @Operation(
+            summary = "Delete user by email",
+            description = "Delete user authentication credentials by email"
+    )
+    @ApiResponse(responseCode = "204", description = "User deleted successfully")
+    @DeleteMapping("/user/{email}")
+    public ResponseEntity<Void> deleteUser(@PathVariable String email) {
+        authService.deleteUserByEmail(email);
+        return ResponseEntity.noContent().build();
+    }
 }

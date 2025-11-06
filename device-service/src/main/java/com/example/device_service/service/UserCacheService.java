@@ -29,4 +29,8 @@ public class UserCacheService {
     public boolean isUserCached(UUID uuid){
         return this.userCacheRepository.existsByUserId(uuid);
     }
+
+    public void deleteById(UUID userId) {
+        userCacheRepository.deleteById(userId);
+    }
 }

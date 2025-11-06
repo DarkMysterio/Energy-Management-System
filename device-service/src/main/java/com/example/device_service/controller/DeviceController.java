@@ -81,4 +81,13 @@ public class DeviceController {
         return responseEntity;
     }
 
+    @Operation(summary = "Delete device by device ID")
+    @ApiResponse(responseCode = "204", description = "Devices deleted")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteDevicesById(@PathVariable UUID id){
+        deviceService.deleteDevicesById(id);
+        ResponseEntity<Void> responseEntity = new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return responseEntity;
+    }
+
 }

@@ -37,12 +37,10 @@ public class AuthService {
     }
 
     public AuthResponse register(RegisterRequest req) {
-        // upsert guard
         authRepository.findByEmail(req.getEmail()).ifPresent(u -> {
             throw new IllegalStateException("Email already registered");
         });
 
-        // Save to auth database
         AuthDetails user = new AuthDetails();
         user.setEmail(req.getEmail());
         user.setPassword(passwordEncoder.encode(req.getPassword()));
@@ -50,7 +48,6 @@ public class AuthService {
 
         authRepository.save(user);
 
-        //Create user in user-service
         try {
             UserServiceDTO userDto = new UserServiceDTO(
                 req.getName(),
@@ -82,5 +79,11 @@ public class AuthService {
         }
         String token = jwtService.generateToken(user.getEmail(), user.getRole());
         return new AuthResponse(token, user.getRole(), user.getEmail());
+    }
+    
+    public void deleteUserByEmail(String email) {
+        AuthDetails user = authRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        authRepository.delete(user);
     }
 }

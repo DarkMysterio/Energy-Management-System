@@ -19,6 +19,9 @@ public class DeviceService {
     private DeviceRepository deviceRepository;
 
     @Autowired
+    private UserAndDeviceService userAndDeviceService;
+
+    @Autowired
     private DeviceConverter deviceConverter;
 
     public List<DeviceDTO> findAllDevices(){
@@ -72,5 +75,10 @@ public class DeviceService {
         Device deviceEntity = device.get();
         deviceEntity.setName(dto.getName());
         deviceRepository.save(deviceEntity);
+    }
+
+    public void deleteDevicesById(UUID id) {
+        userAndDeviceService.deleteAllAssignedDevicesBelongingtoDevice(id);
+        deviceRepository.deleteById(id);
     }
 }
