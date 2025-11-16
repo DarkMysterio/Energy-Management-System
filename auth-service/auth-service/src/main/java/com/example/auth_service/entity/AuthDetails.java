@@ -22,11 +22,11 @@ public class AuthDetails {
     private UUID id;
 
     @Column(nullable = false)
-    private String email;      // acts as username
+    private String email;
 
     @Column(nullable = false)
-    private String password;   // BCrypt
+    private String password;
 
     @Column(nullable = false)
-    private String role;       // e.g. "ADMIN" or "CLIENT"
+    private String role;
 }

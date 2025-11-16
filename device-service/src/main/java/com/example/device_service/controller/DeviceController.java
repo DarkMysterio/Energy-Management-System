@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -36,6 +37,7 @@ public class DeviceController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @GetMapping
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'CLIENT')")
     public ResponseEntity<List<DeviceDTO>> getAllDevices(){
         return ResponseEntity.ok(deviceService.findAllDevices());
     }
@@ -50,6 +52,7 @@ public class DeviceController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @PostMapping
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Void> createDevice(@RequestBody DeviceDTO dto){
         UUID id = deviceService.create(dto);
         URI location = ServletUriComponentsBuilder
@@ -69,6 +72,7 @@ public class DeviceController {
             @ApiResponse(responseCode = "404", description = "Device not found")
     })
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Void> updateDevice(@PathVariable UUID id,@RequestBody DeviceDTO dto){
         deviceService.updateDevice(id,dto);
         ResponseEntity<Void> responseEntity = new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -84,6 +88,7 @@ public class DeviceController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @DeleteMapping
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Void> deleteDevices(){
         deviceService.deleteAllDevices();
         ResponseEntity<Void> responseEntity = new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -100,6 +105,7 @@ public class DeviceController {
             @ApiResponse(responseCode = "404", description = "Device not found")
     })
     @PatchMapping("/name/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Void> partialUpdateName(@PathVariable UUID id, @RequestBody DeviceDTO dto){
         deviceService.partialUpdateName(id,dto);
         ResponseEntity<Void> responseEntity = new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -116,6 +122,7 @@ public class DeviceController {
             @ApiResponse(responseCode = "404", description = "Device not found")
     })
     @PatchMapping("/consumption/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Void> partialUpdateConsumption(@PathVariable UUID id, @RequestBody DeviceDTO dto){
         deviceService.partialUpdateConsumption(id,dto);
         ResponseEntity<Void> responseEntity = new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -131,6 +138,7 @@ public class DeviceController {
             @ApiResponse(responseCode = "404", description = "Device not found")
     })
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Void> deleteDevicesById(@PathVariable UUID id){
         deviceService.deleteDevicesById(id);
         ResponseEntity<Void> responseEntity = new ResponseEntity<>(HttpStatus.NO_CONTENT);

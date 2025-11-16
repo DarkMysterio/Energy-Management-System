@@ -24,11 +24,15 @@ public class UserAndDeviceService{
     @Autowired
     private UserAndDeviceConverter converter;
 
-
+    @Transactional
     public void assignDeviceToUser(UserAndDeviceDTO dto){
 
         boolean existsInUserRepo = userCacheRepository.existsByUserId(dto.getUserID());
         if(!existsInUserRepo){
+            return;
+        }
+        boolean existsDeviceInRepo =  userAndDeviceRepository.existsByDeviceID(dto.getDeviceID());
+        if(existsDeviceInRepo){
             return;
         }
         boolean exists = userAndDeviceRepository.existsByUserIDAndDeviceID(dto.getUserID(), dto.getDeviceID());

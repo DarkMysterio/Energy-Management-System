@@ -10,6 +10,8 @@ public interface UserAndDeviceRepository extends JpaRepository<UserAndDevice, UU
 
     boolean existsByUserIDAndDeviceID(UUID userID, UUID deviceID);
 
+    boolean existsByDeviceID(UUID deviceID);
+
     List<UserAndDevice> findByUserID(UUID userID);
 
     List<UserAndDevice> findByDeviceID(UUID deviceID);

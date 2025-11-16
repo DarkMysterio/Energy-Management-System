@@ -1,10 +1,7 @@
 package com.example.device_service.entity;
 
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UuidGenerator;
@@ -19,6 +16,11 @@ import java.util.UUID;
 @Entity
 @Getter
 @Setter
+@Table(
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_user_and_device__device_id", columnNames = "device_id")
+        }
+)
 public class UserAndDevice {
     @Id
     @GeneratedValue
@@ -29,7 +31,7 @@ public class UserAndDevice {
     @Column(name = "userId", nullable = false)
     private UUID userID;
 
-    @Column(name = "deviceId", nullable = false)
+    @Column(name = "device_id", nullable = false, unique = true)
     private UUID deviceID;
 
     public UUID getId() {

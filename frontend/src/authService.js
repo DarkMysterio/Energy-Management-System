@@ -1,3 +1,5 @@
+import { parseJwtPayload, getCurrentUserRole, getCurrentUserId, getCurrentUserEmail, isTokenExpired } from './jwtUtils';
+
 const AUTH_API = 'http://localhost/auth';
 
 export const authService = {
@@ -28,16 +30,13 @@ export const authService = {
     }
     
     const data = await response.json();
+    // Only store the token - role will be decoded from it
     localStorage.setItem('token', data.token);
-    localStorage.setItem('username', data.email);
-    localStorage.setItem('role', data.role);
     return data;
   },
 
   logout() {
     localStorage.removeItem('token');
-    localStorage.removeItem('username');
-    localStorage.removeItem('role');
   },
 
   getToken() {
@@ -45,22 +44,27 @@ export const authService = {
   },
 
   isAuthenticated() {
-    return !!this.getToken();
+    const token = this.getToken();
+    return token && !isTokenExpired();
   },
 
   getUsername() {
-    return localStorage.getItem('username');
+    return getCurrentUserEmail();
   },
 
   getRole() {
-    return localStorage.getItem('role');
+    return getCurrentUserRole();
+  },
+
+  getUserId() {
+    return getCurrentUserId();
   },
 
   isAdmin() {
-    return this.getRole() === 'ADMIN';
+    return getCurrentUserRole() === 'ADMIN';
   },
 
   isClient() {
-    return this.getRole() === 'CLIENT';
+    return getCurrentUserRole() === 'CLIENT';
   }
 };

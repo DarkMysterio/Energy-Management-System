@@ -31,9 +31,10 @@ public class JWTService {
         }
     }
 
-    public String generateToken(String email, String role){
+    public String generateToken(String email, String role, String userId){
         Map<String,Object> claims = new HashMap<>();
         claims.put("role", role);
+        claims.put("userId", userId);
         return Jwts.builder().claims().add(claims).
                 subject(email).issuedAt(new Date(System.currentTimeMillis())).
                 expiration(new Date(System.currentTimeMillis() + 10 * 60 * 1000)).and().signWith(getKey()).compact();
@@ -49,6 +50,10 @@ public class JWTService {
     }
     public String extractRole(String token) {
         return extractClaims(token).get("role", String.class);
+    }
+
+    public String extractUserId(String token) {
+        return extractClaims(token).get("userId", String.class);
     }
 
     public boolean validateToken(String token) {

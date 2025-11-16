@@ -66,7 +66,7 @@ public class AuthService {
             System.err.println("Failed to create user in user-service: " + e.getMessage());
         }
 
-        String token = jwtService.generateToken(user.getEmail(), user.getRole());
+        String token = jwtService.generateToken(user.getEmail(), user.getRole(), user.getId().toString());
         return new AuthResponse(token, user.getRole(), user.getEmail());
     }
     
@@ -77,7 +77,7 @@ public class AuthService {
         if (!passwordEncoder.matches(req.getPassword(), user.getPassword())) {
             throw new IllegalArgumentException("Invalid credentials");
         }
-        String token = jwtService.generateToken(user.getEmail(), user.getRole());
+        String token = jwtService.generateToken(user.getEmail(), user.getRole(), user.getId().toString());
         return new AuthResponse(token, user.getRole(), user.getEmail());
     }
     

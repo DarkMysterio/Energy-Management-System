@@ -10,6 +10,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -37,8 +39,8 @@ public class AuthController {
             @ApiResponse(responseCode = "200", description = "Registration successful"),
             @ApiResponse(responseCode = "400", description = "Invalid input data or user already created")
     })
-    @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest req) {
+    @PostMapping("/register")// folosim valid ca validarile sa fie facute inainte de intrarea in metoda
+    public ResponseEntity<AuthResponse> register(@RequestBody @Valid RegisterRequest req) {
         return ResponseEntity.ok(authService.register(req));
     }
 
@@ -63,14 +65,29 @@ public class AuthController {
             @ApiResponse(responseCode = "200", description = "Token is valid"),
             @ApiResponse(responseCode = "401", description = "Invalid or missing token")
     })
-    @GetMapping("/validate")
-    public ResponseEntity<?> validate(HttpServletRequest request) {
-        String header = request.getHeader("Authorization");
-        if (header != null && header.startsWith("Bearer ")
-                && jwtService.validateToken(header.substring(7))) {
-            return ResponseEntity.ok().build();
+    @GetMapping("/validate")  // Changed to GET for Traefik forwardAuth
+    public ResponseEntity<Void> validate(
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            HttpServletResponse response) {
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(401).build();
         }
-        return ResponseEntity.status(401).body("Invalid or missing token");
+
+        String token = authHeader.substring(7);
+        if (!jwtService.validateToken(token)) {
+            return ResponseEntity.status(401).build();
+        }
+
+        String email  = jwtService.extractEmail(token);
+        String role   = jwtService.extractRole(token);
+        String userId = jwtService.extractUserId(token);
+
+        response.setHeader("H-User-Email", email);
+        response.setHeader("H-User-Role",  role);
+        response.setHeader("H-User-Id",    userId);
+
+        return ResponseEntity.ok().build();
     }
 
     @RequestMapping(value = "/validate", method = RequestMethod.OPTIONS)
@@ -93,4 +110,7 @@ public class AuthController {
         authService.deleteUserByEmail(email);
         return ResponseEntity.noContent().build();
     }
+
+    
+
 }

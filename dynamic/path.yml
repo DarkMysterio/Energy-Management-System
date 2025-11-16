@@ -1,30 +1,40 @@
 # dynamic/path.yml
 http:
   routers:
+    r-frontend:
+      entryPoints: [web]
+      rule: PathPrefix(`/`)
+      service: s-frontend
+      priority: 1
+
     r-auth:
       entryPoints: [web]
       rule: PathPrefix(`/auth`)
       service: s-auth
       middlewares: [cors]
+      priority: 10
 
     r-users:
       entryPoints: [web]
       rule: PathPrefix(`/api/users`)
       service: s-users
-      middlewares: [cors, mw-auth-forward, mw-users-replace]
+      middlewares: [cors, mw-auth-forward, mw-users-replace]  # see note below about order
+      priority: 20
 
     r-devices:
       entryPoints: [web]
       rule: PathPrefix(`/api/devices`)
       service: s-devices
-      middlewares: [cors, mw-auth-forward, mw-devices-replace]
+      middlewares: [cors, mw-auth-forward, mw-devices-replace]  # see note below about order
+      priority: 20
 
-    # Handle CORS preflights cleanly (no auth, no backend)
+    # Handle CORS preflights (no auth, no backend)
     r-preflight:
       entryPoints: [web]
       rule: "Method(`OPTIONS`) && PathPrefix(`/api`)"
       service: noop@internal
       middlewares: [cors]
+      priority: 30
 
   middlewares:
     cors:
@@ -32,7 +42,7 @@ http:
         accessControlAllowOriginList:
           - "http://localhost:3000"
         accessControlAllowMethods:
-          - "GET" 
+          - "GET"
           - "POST"
           - "PUT"
           - "PATCH"
@@ -48,21 +58,28 @@ http:
       forwardAuth:
         address: "http://auth-service:8082/auth/validate"
         authRequestHeaders:
-          - "Authorization"  
+          - "Authorization"      # send the bearer token to auth
+        authResponseHeaders:      # <-- copy these headers from /auth/validate back onto the original request
+          - "H-User-Id"
+          - "H-User-Role"
+          - "H-User-Email"
+        trustForwardHeader: true  # ok to keep true/false; not required, but harmless
 
-    # /api/users[...]  -> /people[...]
     mw-users-replace:
       replacePathRegex:
         regex: ^/api/users(.*)
         replacement: /people$1
 
-    # /api/devices[...] -> /devices[...]
     mw-devices-replace:
       replacePathRegex:
         regex: ^/api/devices(.*)
-        replacement: /devices$1   
+        replacement: /devices$1
 
   services:
+    s-frontend:
+      loadBalancer:
+        servers:
+          - url: "http://frontend:80"
     s-auth:
       loadBalancer:
         servers:

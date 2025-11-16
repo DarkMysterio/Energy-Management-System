@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,6 +34,7 @@ public class UserAndDeviceController {
             @ApiResponse(responseCode = "404", description = "User or device not found")
     })
     @PostMapping()
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Void> assignDeviceToUser(@RequestBody UserAndDeviceDTO dto){
         userAndDeviceService.assignDeviceToUser(dto);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -47,6 +49,7 @@ public class UserAndDeviceController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @GetMapping()
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'CLIENT')")
     public ResponseEntity<List<UserAndDeviceDTO>> getAllAssignedDevices(){
         return ResponseEntity.ok(userAndDeviceService.getAllAssignedDevices());
     }
@@ -60,6 +63,7 @@ public class UserAndDeviceController {
             @ApiResponse(responseCode = "404", description = "User not found")
     })
     @DeleteMapping("/user/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Void> deleteAllAssignedDevicesBelongingtoUser(@PathVariable UUID id){
         userAndDeviceService.deleteAllAssignedDevicesBelongingtoUser(id);
         ResponseEntity<Void> responseEntity = new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -75,6 +79,7 @@ public class UserAndDeviceController {
             @ApiResponse(responseCode = "404", description = "Device not found")
     })
     @DeleteMapping("/device/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Void> deleteAllAssignedDevicesBelongingtoDevice(@PathVariable UUID id){
         userAndDeviceService.deleteAllAssignedDevicesBelongingtoDevice(id);
         ResponseEntity<Void> responseEntity = new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -90,6 +95,7 @@ public class UserAndDeviceController {
             @ApiResponse(responseCode = "404", description = "Assignment not found")
     })
     @DeleteMapping("/assignment/{userId}/{deviceId}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Void> deleteAssignment(
             @PathVariable UUID userId,
             @PathVariable UUID deviceId) {
@@ -107,6 +113,7 @@ public class UserAndDeviceController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @DeleteMapping
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Void> deleteAllAssignedDevices(){
         userAndDeviceService.deleteAllAssignedDevices();
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
