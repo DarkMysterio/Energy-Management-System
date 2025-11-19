@@ -75,6 +75,21 @@ services:
     networks:
       demo_net:
 
+  db-monitoring:
+    image: postgres
+    container_name: db-monitoring
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1163
+      POSTGRES_DB: monitoringdb   
+    ports:
+      - "5436:5432"               
+    volumes:
+      - monitoring-db:/var/lib/postgresql/data
+    networks:
+      demo_net:
+
   
   auth-service:
     build: ./auth-service/auth-service
@@ -138,11 +153,36 @@ services:
     depends_on:
       - db-devices
 
+  monitoring-service:
+    build: ./monitoring-service         
+    image: monitoring-service
+    container_name: monitoring-service
+    # comment port
+    ports:
+    - "8083:8083"  
+    environment:
+      - DB_IP=db-monitoring
+      - DB_PORT=5432
+      - DB_DBNAME=monitoringdb
+      - DB_USER=postgres
+      - DB_PASSWORD=1163
+
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+
+      - SERVER_PORT=8083
+      - PORT=8083
+    depends_on:
+      - db-monitoring
+      - rabbitmq
+    networks:
+      demo_net:
+
+
   frontend:
     build: ./frontend
     image: frontend-react
     container_name: frontend
-    # Port removed - access through Traefik on port 80
     networks:
       demo_net:
 
@@ -150,6 +190,7 @@ volumes:
   users-db:
   devices-db:
   auth-db:
+  monitoring-db:
 
 networks:
   demo_net:
