@@ -10,4 +10,6 @@ public class RabbitConfig {
     public Queue dataQueue() {
         return new Queue(DATA_QUEUE, true); // durable
     }
+
+
 }
