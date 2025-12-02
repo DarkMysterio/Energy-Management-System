@@ -1,0 +1,10 @@
+[
+  {
+    "deviceId": "3bf54f79-2129-476f-abc1-ff71dd482030",
+    "intervalMillis": 600000
+  },
+  {
+    "deviceId": "1e780a88-a682-4f69-92ab-e77c24eaad71",
+    "intervalMillis": 3000
+  }
+]

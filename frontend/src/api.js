@@ -180,6 +180,24 @@ export const deleteAssignment = async (userId, deviceId) => {
   return handleResponse(response);
 };
 
+// Monitoring API - Energy Consumption
+export const fetchDailyConsumption = async (deviceId, date) => {
+  const response = await fetch(`${API_URL}/api/monitoring/consumption/${deviceId}?date=${date}`, {
+    headers: getHeaders()
+  });
+  return handleResponse(response);
+};
+
+// Fetch total consumption for multiple devices
+export const fetchTotalConsumption = async (devices, date) => {
+  const response = await fetch(`${API_URL}/api/monitoring/consumption/total?date=${date}`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ devices: devices.map(d => ({ deviceId: d.id, name: d.name })) })
+  });
+  return handleResponse(response);
+};
+
 // Keep the api object for backward compatibility
 export const api = {
   getUsers: fetchUsers,

@@ -28,6 +28,13 @@ http:
       middlewares: [cors, mw-auth-forward, mw-devices-replace]  # see note below about order
       priority: 20
 
+    r-monitoring:
+      entryPoints: [web]
+      rule: PathPrefix(`/api/monitoring`)
+      service: s-monitoring
+      middlewares: [cors, mw-auth-forward]
+      priority: 20
+
     # Handle CORS preflights (no auth, no backend)
     r-preflight:
       entryPoints: [web]
@@ -92,3 +99,7 @@ http:
       loadBalancer:
         servers:
           - url: "http://device-service:8081"
+    s-monitoring:
+      loadBalancer:
+        servers:
+          - url: "http://monitoring-service:8083"

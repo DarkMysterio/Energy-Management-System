@@ -6,6 +6,7 @@ import UsersPage from './pages/UsersPage';
 import DevicesPage from './pages/DevicesPage';
 import AssignDevicePage from './pages/AssignDevicePage';
 import ClientDevicesPage from './pages/ClientDevicesPage';
+import EnergyConsumptionPage from './pages/EnergyConsumptionPage';
 import './App.css';
 
 function App() {
@@ -68,12 +69,20 @@ function App() {
                 </button>
               </>
             ) : (
-              <button
-                onClick={() => setCurrentPage('mydevices')}
-                style={styles.navButton}
-              >
-                My Devices
-              </button>
+              <>
+                <button
+                  onClick={() => setCurrentPage('mydevices')}
+                  style={styles.navButton}
+                >
+                  My Devices
+                </button>
+                <button
+                  onClick={() => setCurrentPage('energy')}
+                  style={styles.navButton}
+                >
+                  Energy Consumption
+                </button>
+              </>
             )}
           </div>
           <div style={styles.navRight}>
@@ -99,6 +108,7 @@ function App() {
           ) : (
             <>
               {currentPage === 'mydevices' && <ClientDevicesPage />}
+              {currentPage === 'energy' && <EnergyConsumptionPage />}
             </>
           )}
         </div>

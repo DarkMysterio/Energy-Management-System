@@ -104,13 +104,15 @@ services:
       - DB_USER=postgres
       - DB_PASSWORD=1163
       - USER_SERVICE_URL=http://spring-demo:8080
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
       - SERVER_PORT=8082
       - PORT=8082
     networks:
       demo_net:
     depends_on:
       - db-auth
-      - spring-demo
+      - rabbitmq
   
   spring-demo:
     build: ./ds2025_spring_example/demo
@@ -126,12 +128,15 @@ services:
       - DB_PASSWORD=1163
       - DEVICE_SERVICE_URL=http://device-service:8081
       - AUTH_SERVICE_URL=http://auth-service:8082
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
       - SERVER_PORT=8080
       - PORT=8080
     networks:
       demo_net:
     depends_on:
       - db-users
+      - rabbitmq
 
   device-service:
     build: ./device-service
@@ -146,12 +151,15 @@ services:
       - DB_USER=postgres
       - DB_PASSWORD=1163
       - USER_SERVICE_URL=http://spring-demo:8080
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
       - SERVER_PORT=8081
       - PORT=8081
     networks:
       demo_net:
     depends_on:
       - db-devices
+      - rabbitmq
 
   monitoring-service:
     build: ./monitoring-service         

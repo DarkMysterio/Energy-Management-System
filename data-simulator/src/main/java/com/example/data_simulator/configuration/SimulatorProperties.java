@@ -7,17 +7,7 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "simulator")
 public class SimulatorProperties {
 
-
-    private String deviceId;
     private String queueName;
-
-    public String getDeviceId() {
-        return deviceId;
-    }
-
-    public void setDeviceId(String deviceId) {
-        this.deviceId = deviceId;
-    }
 
     public String getQueueName() {
         return queueName;
@@ -26,6 +16,4 @@ public class SimulatorProperties {
     public void setQueueName(String queueName) {
         this.queueName = queueName;
     }
-
-
 }

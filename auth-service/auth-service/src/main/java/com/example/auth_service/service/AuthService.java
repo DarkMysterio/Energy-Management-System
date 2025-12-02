@@ -1,19 +1,16 @@
 package com.example.auth_service.service;
 
+import com.example.auth_service.config.RabbitMQConfig;
 import com.example.auth_service.dto.AuthResponse;
 import com.example.auth_service.dto.LoginRequest;
 import com.example.auth_service.dto.RegisterRequest;
-import com.example.auth_service.dto.UserServiceDTO;
+import com.example.auth_service.dto.UserSyncMessage;
 import com.example.auth_service.entity.AuthDetails;
 import com.example.auth_service.repository.AuthRepository;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 @Service
 public class AuthService {
@@ -24,16 +21,13 @@ public class AuthService {
     @Autowired
     private final JWTService jwtService;
     @Autowired
-    private final RestTemplate restTemplate;
-    
-    @Value("${USER_SERVICE_URL:http://spring-demo:8080}")
-    private String userServiceUrl;
+    private final RabbitTemplate rabbitTemplate;
 
-    public AuthService(AuthRepository authRepository, PasswordEncoder passwordEncoder, JWTService jwtService, RestTemplate restTemplate) {
+    public AuthService(AuthRepository authRepository, PasswordEncoder passwordEncoder, JWTService jwtService, RabbitTemplate rabbitTemplate) {
         this.authRepository = authRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
-        this.restTemplate = restTemplate;
+        this.rabbitTemplate = rabbitTemplate;
     }
 
     public AuthResponse register(RegisterRequest req) {
@@ -49,21 +43,19 @@ public class AuthService {
         authRepository.save(user);
 
         try {
-            UserServiceDTO userDto = new UserServiceDTO(
+            UserSyncMessage syncMessage = new UserSyncMessage(
+                "CREATE",
                 req.getName(),
                 req.getAge(),
                 req.getAddress(),
                 req.getEmail(),
-                user.getPassword() // sent hashed pasword
+                user.getPassword(),
+                user.getRole()
             );
-            
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            HttpEntity<UserServiceDTO> request = new HttpEntity<>(userDto, headers);
-            
-            restTemplate.postForEntity(userServiceUrl + "/people", request, Void.class);
+            rabbitTemplate.convertAndSend(RabbitMQConfig.USER_SYNC_QUEUE, syncMessage);
+            System.out.println("User sync message sent to queue for: " + req.getEmail());
         } catch (Exception e) {
-            System.err.println("Failed to create user in user-service: " + e.getMessage());
+            System.err.println("Failed to send user sync message: " + e.getMessage());
         }
 
         String token = jwtService.generateToken(user.getEmail(), user.getRole(), user.getId().toString());
@@ -85,5 +77,18 @@ public class AuthService {
         AuthDetails user = authRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
         authRepository.delete(user);
+
+        try {
+            UserSyncMessage syncMessage = new UserSyncMessage(
+                "DELETE",
+                null, null, null,
+                email,
+                null, null
+            );
+            rabbitTemplate.convertAndSend(RabbitMQConfig.USER_SYNC_QUEUE, syncMessage);
+            System.out.println("User delete sync message sent for: " + email);
+        } catch (Exception e) {
+            System.err.println("Failed to send user delete sync message: " + e.getMessage());
+        }
     }
 }
