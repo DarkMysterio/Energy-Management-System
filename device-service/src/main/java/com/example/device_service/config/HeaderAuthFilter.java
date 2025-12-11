@@ -24,16 +24,13 @@ public class HeaderAuthFilter extends OncePerRequestFilter {
         String role   = request.getHeader("H-User-Role");
         String email  = request.getHeader("H-User-Email");
 
-        // If headers exist, set authentication. Otherwise, just continue
         if (StringUtils.hasText(userId) && StringUtils.hasText(role)) {
-            // Build a simple Authentication with the ROLE as "authority"
             var auth = new UsernamePasswordAuthenticationToken(
                     email != null ? email : userId,
                     null,
                     List.of(new SimpleGrantedAuthority(role)) // <- matches hasAuthority('ADMIN')
             );
 
-            // Optionally attach headers to request attributes for controllers to read if needed
             request.setAttribute("H-User-Id", userId);
             request.setAttribute("H-User-Role", role);
             request.setAttribute("H-User-Email", email);

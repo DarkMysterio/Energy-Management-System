@@ -3,7 +3,7 @@ package com.example.device_service.dto;
 import java.io.Serializable;
 
 public class DeviceSyncMessage implements Serializable {
-    private String operation; // CREATE, UPDATE, DELETE
+    private String operation;
     private String deviceId;
     private String name;
     private Double consumption;

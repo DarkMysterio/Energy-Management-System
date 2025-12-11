@@ -1,8 +1,5 @@
 package com.example.data_simulator.configuration;
 
-/**
- * Represents a single device configuration for simulation
- */
 public class DeviceConfig {
     private String deviceId;
     private long intervalMillis;

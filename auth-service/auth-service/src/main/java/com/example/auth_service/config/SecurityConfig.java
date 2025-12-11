@@ -15,8 +15,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 
-@Configuration // we are saying to spring this is a configuration class
-@EnableWebSecurity // and go for this config instead of the basic one
+@Configuration
+@EnableWebSecurity
 public class SecurityConfig {
 
 
@@ -26,14 +26,15 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
 
-        //disable csrf
         return http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(req -> req
                         .requestMatchers(
                                 "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**"
-                        ).permitAll()// no access without auth ,only for
-                        .requestMatchers("/auth/register", "/auth/login", "/auth/validate").permitAll().anyRequest().authenticated())
-                .httpBasic(Customizer.withDefaults()) 
+                        ).permitAll()
+                        .requestMatchers("/auth/**").permitAll()
+                        .anyRequest().authenticated())
+                .httpBasic(basic -> basic.disable())
+                .formLogin(form -> form.disable())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
@@ -43,5 +44,4 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-    // we will add a filter before the UserPasswordAuth filter in order for jwt to skip it if it is confirm
 }

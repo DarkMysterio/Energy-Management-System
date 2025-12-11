@@ -17,10 +17,10 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .httpBasic(httpBasic -> httpBasic.disable())  // Disable HTTP Basic Auth popup
-                .formLogin(formLogin -> formLogin.disable())   // Disable form login
+                .httpBasic(httpBasic -> httpBasic.disable())
+                .formLogin(formLogin -> formLogin.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll() // Traefik already validated
+                        .anyRequest().permitAll()
                 )
                 .addFilterBefore(new HeaderAuthFilter(), UsernamePasswordAuthenticationFilter.class);
 

@@ -28,7 +28,6 @@ public class AggregationService {
     public void addMeasurement(MeasurementMessage msg) {
         UUID deviceId = msg.getDeviceId();
 
-        // Check if device exists in our synced devices table
         if (!deviceRepository.existsById(deviceId)) {
             LOGGER.warn("Ignoring measurement for unknown device: {}", deviceId);
             return;

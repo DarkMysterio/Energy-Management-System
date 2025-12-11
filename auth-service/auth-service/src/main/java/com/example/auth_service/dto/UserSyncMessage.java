@@ -3,7 +3,7 @@ package com.example.auth_service.dto;
 import java.io.Serializable;
 
 public class UserSyncMessage implements Serializable {
-    private String operation; // CREATE, UPDATE, DELETE
+    private String operation;
     private String name;
     private Integer age;
     private String address;

@@ -13,11 +13,27 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(MethodArgumentNotValidException.class) // prinde exceptiile si face asta 
+    @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidation(MethodArgumentNotValidException ex) {
         Map<String, String> response = new HashMap<>();
         response.put("error", "Bad Request");
         response.put("message", ex.getBindingResult().getAllErrors().get(0).getDefaultMessage());
+        return ResponseEntity.badRequest().body(response);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalArgument(IllegalArgumentException ex) {
+        Map<String, String> response = new HashMap<>();
+        response.put("error", "Unauthorized");
+        response.put("message", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalState(IllegalStateException ex) {
+        Map<String, String> response = new HashMap<>();
+        response.put("error", "Bad Request");
+        response.put("message", ex.getMessage());
         return ResponseEntity.badRequest().body(response);
     }
 

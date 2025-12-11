@@ -91,4 +91,25 @@ public class AuthService {
             System.err.println("Failed to send user delete sync message: " + e.getMessage());
         }
     }
+    
+    public void deleteAllUsers() {
+        java.util.List<AuthDetails> users = authRepository.findAll();
+        
+        authRepository.deleteAll();
+        
+        for (AuthDetails user : users) {
+            try {
+                UserSyncMessage syncMessage = new UserSyncMessage(
+                    "DELETE",
+                    null, null, null,
+                    user.getEmail(),
+                    null, null
+                );
+                rabbitTemplate.convertAndSend(RabbitMQConfig.USER_SYNC_QUEUE, syncMessage);
+                System.out.println("User delete sync message sent for: " + user.getEmail());
+            } catch (Exception e) {
+                System.err.println("Failed to send user delete sync message for " + user.getEmail() + ": " + e.getMessage());
+            }
+        }
+    }
 }

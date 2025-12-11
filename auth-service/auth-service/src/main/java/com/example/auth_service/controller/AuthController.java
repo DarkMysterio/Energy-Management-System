@@ -39,7 +39,7 @@ public class AuthController {
             @ApiResponse(responseCode = "200", description = "Registration successful"),
             @ApiResponse(responseCode = "400", description = "Invalid input data or user already created")
     })
-    @PostMapping("/register")// folosim valid ca validarile sa fie facute inainte de intrarea in metoda
+    @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@RequestBody @Valid RegisterRequest req) {
         return ResponseEntity.ok(authService.register(req));
     }
@@ -65,7 +65,7 @@ public class AuthController {
             @ApiResponse(responseCode = "200", description = "Token is valid"),
             @ApiResponse(responseCode = "401", description = "Invalid or missing token")
     })
-    @GetMapping("/validate")  // Changed to GET for Traefik forwardAuth
+    @GetMapping("/validate")
     public ResponseEntity<Void> validate(
             @RequestHeader(value = "Authorization", required = false) String authHeader,
             HttpServletResponse response) {
@@ -105,9 +105,20 @@ public class AuthController {
             description = "Delete user authentication credentials by email"
     )
     @ApiResponse(responseCode = "204", description = "User deleted successfully")
-    @DeleteMapping("/user/{email}")
-    public ResponseEntity<Void> deleteUser(@PathVariable String email) {
+    @DeleteMapping("/user")
+    public ResponseEntity<Void> deleteUser(@RequestParam String email) {
         authService.deleteUserByEmail(email);
+        return ResponseEntity.noContent().build();
+    }
+    
+    @Operation(
+            summary = "Delete all users",
+            description = "Delete all user authentication credentials"
+    )
+    @ApiResponse(responseCode = "204", description = "All users deleted successfully")
+    @DeleteMapping("/users")
+    public ResponseEntity<Void> deleteAllUsers() {
+        authService.deleteAllUsers();
         return ResponseEntity.noContent().build();
     }
 

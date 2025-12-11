@@ -11,8 +11,13 @@ export const authService = {
     });
     
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(errorText || 'Registration failed');
+      let errorMessage = 'Registration failed';
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorMessage;
+      } catch (e) {
+      }
+      throw new Error(errorMessage);
     }
     
     return response.json();
@@ -26,11 +31,16 @@ export const authService = {
     });
     
     if (!response.ok) {
-      throw new Error('Login failed');
+      let errorMessage = 'Invalid credentials';
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorMessage;
+      } catch (e) {
+      }
+      throw new Error(errorMessage);
     }
     
     const data = await response.json();
-    // Only store the token - role will be decoded from it
     localStorage.setItem('token', data.token);
     return data;
   },

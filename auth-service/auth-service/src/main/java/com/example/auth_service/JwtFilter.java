@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.util.List;
 
 @Component
-// we want the filter to be executed only once in the filter chain
 public class JwtFilter extends OncePerRequestFilter {
 
     @Autowired
@@ -35,9 +34,6 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        // Bearer {a token} - what we get from the client side
-        // and we need to take the token and validate it
-        // we have this in the request header
         String header = request.getHeader("Authorization");
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
@@ -57,6 +53,5 @@ public class JwtFilter extends OncePerRequestFilter {
         }
         filterChain.doFilter(request, response);
     }
-        // verify if it is not already authentificated
 
 }

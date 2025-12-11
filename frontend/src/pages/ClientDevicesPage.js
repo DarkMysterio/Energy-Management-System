@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { fetchUsers, fetchDevices, fetchAssignments } from '../api';
+import { fetchDevices, fetchAssignments } from '../api';
 import { authService } from '../authService';
 
 function ClientDevicesPage() {
@@ -14,28 +14,21 @@ function ClientDevicesPage() {
     const loadMyDevices = async () => {
         try {
             setLoading(true);
-            const userEmail = authService.getUsername();
+            const userId = authService.getUserId();
             
-            // Fetch all users to find current user's ID
-            const users = await fetchUsers();
-            const currentUser = users.find(u => u.email === userEmail);
-            
-            if (!currentUser) {
-                setError('User not found');
+            if (!userId) {
+                setError('User not found - please login again');
                 setLoading(false);
                 return;
             }
 
-            // Fetch all devices and assignments
             const [devices, assignments] = await Promise.all([
                 fetchDevices(),
                 fetchAssignments()
             ]);
 
-            // Filter assignments for current user
-            const myAssignments = assignments.filter(a => a.userID === currentUser.id);
+            const myAssignments = assignments.filter(a => a.userID === userId);
             
-            // Get device details for assigned devices
             const assignedDevices = myAssignments.map(assignment => {
                 const device = devices.find(d => d.id === assignment.deviceID);
                 return device;

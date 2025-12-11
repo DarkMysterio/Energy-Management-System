@@ -13,7 +13,6 @@ const getHeaders = () => {
 
 const handleResponse = async (response) => {
   if (response.status === 401) {
-    // Token expired or invalid - log out
     authService.logout();
     window.location.reload();
     throw new Error('Session expired. Please login again.');
@@ -23,12 +22,10 @@ const handleResponse = async (response) => {
     throw new Error(errorText || `HTTP ${response.status}: ${response.statusText}`);
   }
   
-  // Handle responses with no content (204, 201, etc.)
   if (response.status === 204 || response.status === 205) {
     return null;
   }
   
-  // Check if response has content
   const contentType = response.headers.get('content-type');
   if (contentType && contentType.includes('application/json')) {
     const text = await response.text();
@@ -40,12 +37,10 @@ const handleResponse = async (response) => {
     return null;
   }
   
-  // Try to parse as JSON for other successful responses
   const text = await response.text();
   return text ? JSON.parse(text) : null;
 };
 
-// Users API
 export const fetchUsers = async () => {
   const response = await fetch(`${API_URL}/api/users`, {
     headers: getHeaders()
@@ -71,8 +66,8 @@ export const updateUser = async (id, user) => {
   return handleResponse(response);
 };
 
-export const deleteUser = async (id) => {
-  const response = await fetch(`${API_URL}/api/users/${id}`, {
+export const deleteUser = async (email) => {
+  const response = await fetch(`${API_URL}/auth/user?email=${encodeURIComponent(email)}`, {
     method: 'DELETE',
     headers: getHeaders()
   });
@@ -80,14 +75,13 @@ export const deleteUser = async (id) => {
 };
 
 export const deleteAllUsers = async () => {
-  const response = await fetch(`${API_URL}/api/users`, {
+  const response = await fetch(`${API_URL}/auth/users`, {
     method: 'DELETE',
     headers: getHeaders()
   });
   return handleResponse(response);
 };
 
-// Devices API
 export const fetchDevices = async () => {
   const response = await fetch(`${API_URL}/api/devices`, {
     headers: getHeaders()
@@ -147,7 +141,6 @@ export const deleteDevice = async (id) => {
   return handleResponse(response);
 };
 
-// Assignments API
 export const fetchAssignments = async () => {
   const response = await fetch(`${API_URL}/api/devices/assign`, {
     headers: getHeaders()
@@ -180,7 +173,6 @@ export const deleteAssignment = async (userId, deviceId) => {
   return handleResponse(response);
 };
 
-// Monitoring API - Energy Consumption
 export const fetchDailyConsumption = async (deviceId, date) => {
   const response = await fetch(`${API_URL}/api/monitoring/consumption/${deviceId}?date=${date}`, {
     headers: getHeaders()
@@ -188,7 +180,6 @@ export const fetchDailyConsumption = async (deviceId, date) => {
   return handleResponse(response);
 };
 
-// Fetch total consumption for multiple devices
 export const fetchTotalConsumption = async (devices, date) => {
   const response = await fetch(`${API_URL}/api/monitoring/consumption/total?date=${date}`, {
     method: 'POST',
@@ -198,7 +189,6 @@ export const fetchTotalConsumption = async (devices, date) => {
   return handleResponse(response);
 };
 
-// Keep the api object for backward compatibility
 export const api = {
   getUsers: fetchUsers,
   createUser,

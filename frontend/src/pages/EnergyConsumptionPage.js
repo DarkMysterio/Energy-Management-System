@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { fetchUsers, fetchDevices, fetchAssignments, fetchDailyConsumption, fetchTotalConsumption } from '../api';
+import React, { useState, useEffect, useRef } from 'react';
+import { fetchDevices, fetchAssignments, fetchDailyConsumption, fetchTotalConsumption } from '../api';
 import { authService } from '../authService';
+
+const REFRESH_INTERVAL = 500;
 
 function EnergyConsumptionPage() {
     const [myDevices, setMyDevices] = useState([]);
@@ -8,11 +10,12 @@ function EnergyConsumptionPage() {
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
     const [consumptionData, setConsumptionData] = useState(null);
     const [totalConsumption, setTotalConsumption] = useState(null);
-    const [chartType, setChartType] = useState('bar'); // 'bar' or 'line'
+    const [chartType, setChartType] = useState('bar');
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
     const [loadingChart, setLoadingChart] = useState(false);
     const [loadingTotal, setLoadingTotal] = useState(false);
+    const intervalRef = useRef(null);
 
     useEffect(() => {
         loadMyDevices();
@@ -21,13 +24,10 @@ function EnergyConsumptionPage() {
     const loadMyDevices = async () => {
         try {
             setLoading(true);
-            const userEmail = authService.getUsername();
+            const userId = authService.getUserId();
             
-            const users = await fetchUsers();
-            const currentUser = users.find(u => u.email === userEmail);
-            
-            if (!currentUser) {
-                setError('User not found');
+            if (!userId) {
+                setError('User not found - please login again');
                 setLoading(false);
                 return;
             }
@@ -37,7 +37,7 @@ function EnergyConsumptionPage() {
                 fetchAssignments()
             ]);
 
-            const myAssignments = assignments.filter(a => a.userID === currentUser.id);
+            const myAssignments = assignments.filter(a => a.userID === userId);
             const assignedDevices = myAssignments.map(assignment => {
                 const device = devices.find(d => d.id === assignment.deviceID);
                 return device;
@@ -55,36 +55,51 @@ function EnergyConsumptionPage() {
         }
     };
 
-    const loadConsumptionData = async () => {
+    const loadConsumptionData = async (silent = false) => {
         if (!selectedDevice || !selectedDate) return;
 
         try {
-            setLoadingChart(true);
+            if (!silent) setLoadingChart(true);
             const data = await fetchDailyConsumption(selectedDevice, selectedDate);
             setConsumptionData(data);
             setError(null);
         } catch (err) {
-            setError(err.message);
+            if (!silent) setError(err.message);
             setConsumptionData(null);
         } finally {
-            setLoadingChart(false);
+            if (!silent) setLoadingChart(false);
         }
     };
 
-    const loadTotalConsumption = async () => {
+    const loadTotalConsumption = async (silent = false) => {
         if (myDevices.length === 0 || !selectedDate) return;
 
         try {
-            setLoadingTotal(true);
+            if (!silent) setLoadingTotal(true);
             const data = await fetchTotalConsumption(myDevices, selectedDate);
             setTotalConsumption(data);
         } catch (err) {
             console.error('Failed to load total consumption:', err);
             setTotalConsumption(null);
         } finally {
-            setLoadingTotal(false);
+            if (!silent) setLoadingTotal(false);
         }
     };
+
+    useEffect(() => {
+        if (selectedDevice && selectedDate && myDevices.length > 0) {
+            intervalRef.current = setInterval(() => {
+                loadConsumptionData(true);
+                loadTotalConsumption(true);
+            }, REFRESH_INTERVAL);
+        }
+        
+        return () => {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+            }
+        };
+    }, [selectedDevice, selectedDate, myDevices]);
 
     useEffect(() => {
         if (selectedDevice && selectedDate) {
@@ -109,12 +124,9 @@ function EnergyConsumptionPage() {
         if (chartType === 'bar') {
             return (
                 <svg width={chartWidth + 60} height={chartHeight + 60} style={{ background: '#fafafa', borderRadius: '8px' }}>
-                    {/* Y-axis */}
                     <line x1="50" y1="10" x2="50" y2={chartHeight + 10} stroke="#333" strokeWidth="2" />
-                    {/* X-axis */}
                     <line x1="50" y1={chartHeight + 10} x2={chartWidth + 50} y2={chartHeight + 10} stroke="#333" strokeWidth="2" />
                     
-                    {/* Y-axis labels */}
                     {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => (
                         <g key={i}>
                             <text x="45" y={chartHeight + 10 - ratio * chartHeight} textAnchor="end" fontSize="12" fill="#666">
@@ -124,7 +136,6 @@ function EnergyConsumptionPage() {
                         </g>
                     ))}
 
-                    {/* Bars */}
                     {consumptionData.hourlyData.map((hourData, index) => {
                         const barHeight = (hourData.kwh / maxKwh) * chartHeight;
                         return (
@@ -139,7 +150,6 @@ function EnergyConsumptionPage() {
                                 >
                                     <title>{`Hour ${hourData.hour}: ${hourData.kwh.toFixed(4)} kWh`}</title>
                                 </rect>
-                                {/* X-axis labels (every 3 hours) */}
                                 {index % 3 === 0 && (
                                     <text 
                                         x={55 + index * (barWidth + 4) + barWidth / 2} 
@@ -155,13 +165,11 @@ function EnergyConsumptionPage() {
                         );
                     })}
 
-                    {/* Labels */}
                     <text x={chartWidth / 2 + 30} y={chartHeight + 55} textAnchor="middle" fontSize="14" fill="#333">Hours</text>
                     <text x="15" y={chartHeight / 2} textAnchor="middle" fontSize="14" fill="#333" transform={`rotate(-90, 15, ${chartHeight / 2})`}>kWh</text>
                 </svg>
             );
         } else {
-            // Line chart
             const points = consumptionData.hourlyData.map((h, i) => {
                 const x = 55 + i * ((chartWidth - 10) / 23);
                 const y = chartHeight + 10 - (h.kwh / maxKwh) * chartHeight;
@@ -170,12 +178,9 @@ function EnergyConsumptionPage() {
 
             return (
                 <svg width={chartWidth + 60} height={chartHeight + 60} style={{ background: '#fafafa', borderRadius: '8px' }}>
-                    {/* Y-axis */}
                     <line x1="50" y1="10" x2="50" y2={chartHeight + 10} stroke="#333" strokeWidth="2" />
-                    {/* X-axis */}
                     <line x1="50" y1={chartHeight + 10} x2={chartWidth + 50} y2={chartHeight + 10} stroke="#333" strokeWidth="2" />
                     
-                    {/* Y-axis labels */}
                     {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => (
                         <g key={i}>
                             <text x="45" y={chartHeight + 10 - ratio * chartHeight} textAnchor="end" fontSize="12" fill="#666">
@@ -185,7 +190,6 @@ function EnergyConsumptionPage() {
                         </g>
                     ))}
 
-                    {/* Line */}
                     <polyline
                         points={points}
                         fill="none"
@@ -193,7 +197,6 @@ function EnergyConsumptionPage() {
                         strokeWidth="2"
                     />
 
-                    {/* Points */}
                     {consumptionData.hourlyData.map((h, i) => {
                         const x = 55 + i * ((chartWidth - 10) / 23);
                         const y = chartHeight + 10 - (h.kwh / maxKwh) * chartHeight;
@@ -204,7 +207,6 @@ function EnergyConsumptionPage() {
                         );
                     })}
 
-                    {/* X-axis labels */}
                     {[0, 6, 12, 18, 23].map(hour => {
                         const x = 55 + hour * ((chartWidth - 10) / 23);
                         return (
@@ -214,7 +216,6 @@ function EnergyConsumptionPage() {
                         );
                     })}
 
-                    {/* Labels */}
                     <text x={chartWidth / 2 + 30} y={chartHeight + 55} textAnchor="middle" fontSize="14" fill="#333">Hours</text>
                     <text x="15" y={chartHeight / 2} textAnchor="middle" fontSize="14" fill="#333" transform={`rotate(-90, 15, ${chartHeight / 2})`}>kWh</text>
                 </svg>
@@ -242,7 +243,6 @@ function EnergyConsumptionPage() {
                 </div>
             ) : (
                 <>
-                    {/* Total Consumption Summary Box */}
                     <div style={{ 
                         marginBottom: '25px', 
                         padding: '20px', 
@@ -280,7 +280,6 @@ function EnergyConsumptionPage() {
                         )}
                     </div>
 
-                    {/* Controls */}
                     <div style={{ display: 'flex', gap: '20px', marginBottom: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
                         <div>
                             <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Select Device:</label>
@@ -320,7 +319,6 @@ function EnergyConsumptionPage() {
                         </div>
                     </div>
 
-                    {/* Chart */}
                     <div style={{ marginTop: '20px', overflowX: 'auto' }}>
                         {loadingChart ? (
                             <div style={{ padding: '50px', textAlign: 'center' }}>Loading chart data...</div>
@@ -331,7 +329,6 @@ function EnergyConsumptionPage() {
                                 </h3>
                                 {renderChart()}
                                 
-                                {/* Summary */}
                                 <div style={{ marginTop: '20px', padding: '15px', background: '#e7f3ff', borderRadius: '4px', maxWidth: '400px' }}>
                                     <h4 style={{ marginTop: 0 }}>Daily Summary</h4>
                                     <p><strong>Device:</strong> {myDevices.find(d => d.id === selectedDevice)?.name}</p>
@@ -339,7 +336,6 @@ function EnergyConsumptionPage() {
                                     <p><strong>Total Consumption:</strong> {consumptionData.totalDayKwh.toFixed(4)} kWh</p>
                                 </div>
 
-                                {/* Data Table */}
                                 <details style={{ marginTop: '20px' }}>
                                     <summary style={{ cursor: 'pointer', fontWeight: 'bold' }}>View Hourly Data Table</summary>
                                     <table style={{ marginTop: '10px', fontSize: '14px' }}>

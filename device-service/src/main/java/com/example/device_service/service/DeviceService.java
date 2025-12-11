@@ -47,7 +47,6 @@ public class DeviceService {
         Device device = deviceConverter.deviceDTOtoDevice(dto);
         device = deviceRepository.save(device);
         
-        // Send device sync message to RabbitMQ
         try {
             DeviceSyncMessage syncMessage = new DeviceSyncMessage(
                 "CREATE",
@@ -65,7 +64,24 @@ public class DeviceService {
     }
 
     public void deleteAllDevices(){
+        List<Device> devices = deviceRepository.findAll();
+
         deviceRepository.deleteAll();
+        
+        for (Device device : devices) {
+            try {
+                DeviceSyncMessage syncMessage = new DeviceSyncMessage(
+                    "DELETE",
+                    device.getId().toString(),
+                    null,
+                    null
+                );
+                rabbitTemplate.convertAndSend(RabbitMQConfig.DEVICE_SYNC_QUEUE, syncMessage);
+                LOGGER.info("Device delete sync message sent for: {}", device.getId());
+            } catch (Exception e) {
+                LOGGER.error("Failed to send device delete sync message for {}: {}", device.getId(), e.getMessage());
+            }
+        }
     }
 
     public void updateDevice(UUID id, DeviceDTO dto){
@@ -82,7 +98,6 @@ public class DeviceService {
         }
         deviceRepository.save(deviceEntity);
         
-        // Send update sync message
         try {
             DeviceSyncMessage syncMessage = new DeviceSyncMessage(
                 "UPDATE",
@@ -105,6 +120,19 @@ public class DeviceService {
         Device deviceEntity = device.get();
         deviceEntity.setConsumption(dto.getConsumption());
         deviceRepository.save(deviceEntity);
+        
+        try {
+            DeviceSyncMessage syncMessage = new DeviceSyncMessage(
+                "UPDATE",
+                deviceEntity.getId().toString(),
+                deviceEntity.getName(),
+                deviceEntity.getConsumption()
+            );
+            rabbitTemplate.convertAndSend(RabbitMQConfig.DEVICE_SYNC_QUEUE, syncMessage);
+            LOGGER.info("Device consumption update sync message sent for: {}", deviceEntity.getId());
+        } catch (Exception e) {
+            LOGGER.error("Failed to send device consumption update sync message: {}", e.getMessage());
+        }
     }
     public void partialUpdateName(UUID id,DeviceDTO dto){
         Optional<Device> device = deviceRepository.findById(id);
@@ -114,13 +142,25 @@ public class DeviceService {
         Device deviceEntity = device.get();
         deviceEntity.setName(dto.getName());
         deviceRepository.save(deviceEntity);
+        
+        try {
+            DeviceSyncMessage syncMessage = new DeviceSyncMessage(
+                "UPDATE",
+                deviceEntity.getId().toString(),
+                deviceEntity.getName(),
+                deviceEntity.getConsumption()
+            );
+            rabbitTemplate.convertAndSend(RabbitMQConfig.DEVICE_SYNC_QUEUE, syncMessage);
+            LOGGER.info("Device name update sync message sent for: {}", deviceEntity.getId());
+        } catch (Exception e) {
+            LOGGER.error("Failed to send device name update sync message: {}", e.getMessage());
+        }
     }
 
     public void deleteDevicesById(UUID id) {
         userAndDeviceService.deleteAllAssignedDevicesBelongingtoDevice(id);
         deviceRepository.deleteById(id);
         
-        // Send delete sync message
         try {
             DeviceSyncMessage syncMessage = new DeviceSyncMessage(
                 "DELETE",

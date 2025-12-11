@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
-@EnableScheduling // enables the scheduling of tasks in an application
+@EnableScheduling
 public class DataSimulatorApplication {
 
 	public static void main(String[] args) {

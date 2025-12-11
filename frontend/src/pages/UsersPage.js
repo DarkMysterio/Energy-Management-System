@@ -45,12 +45,18 @@ function UsersPage() {
         setShowForm(true);
     };
 
-    const handleDelete = async (id) => {
-        if (window.confirm('Delete this user?')) {
+    const handleDelete = async (email) => {
+        console.log('Deleting user with email:', email);
+        if (!email) {
+            setError('Cannot delete user: email is missing');
+            return;
+        }
+        if (window.confirm(`Delete user ${email}?`)) {
             try {
-                await deleteUser(id);
+                await deleteUser(email);
                 loadUsers();
             } catch (err) {
+                console.error('Delete error:', err);
                 setError(err.message);
             }
         }
@@ -152,24 +158,26 @@ function UsersPage() {
                     <tr>
                         <th>ID</th>
                         <th>Name</th>
+                        <th>Email</th>
                         <th>Age</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {users.length === 0 ? (
-                        <tr><td colSpan="4" style={{ textAlign: 'center' }}>No users found</td></tr>
+                        <tr><td colSpan="5" style={{ textAlign: 'center' }}>No users found</td></tr>
                     ) : (
                         users.map(user => (
                             <tr key={user.id}>
                                 <td>{user.id}</td>
                                 <td>{user.name}</td>
+                                <td>{user.email}</td>
                                 <td>{user.age}</td>
                                 <td>
                                     <button onClick={() => handleEdit(user)} style={{ marginRight: '5px', padding: '5px 10px', cursor: 'pointer' }}>
                                         Edit
                                     </button>
-                                    <button onClick={() => handleDelete(user.id)} style={{ background: '#dc3545', color: 'white', border: 'none', padding: '5px 10px', cursor: 'pointer' }}>
+                                    <button onClick={() => handleDelete(user.email)} style={{ background: '#dc3545', color: 'white', border: 'none', padding: '5px 10px', cursor: 'pointer' }}>
                                         Delete
                                     </button>
                                 </td>
